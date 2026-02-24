@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { stripe, createPaymentIntent } from '../services/stripe';
 import { prisma } from '../lib/prisma'
-
+import { AuthRequest } from '../middlewares/auth'
 
 export const createIntent = async (req: AuthRequest, res: Response) => {
   try {

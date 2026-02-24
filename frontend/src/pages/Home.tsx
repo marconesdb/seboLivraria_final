@@ -1,12 +1,21 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, ShieldCheck, Truck, RefreshCcw } from 'lucide-react';
-import { MOCK_BOOKS } from '../utils/mockData';
-import BookCard from '../components/ui/BookCard';
-import { motion } from 'motion/react';
+import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowRight, BookOpen, ShieldCheck, Truck, RefreshCcw } from 'lucide-react'
+import BookCard from '../components/ui/BookCard'
+import api from '../lib/api'
+import { Book } from '../types'
+import { motion } from 'motion/react'
 
 export default function Home() {
-  const featuredBooks = MOCK_BOOKS.slice(0, 4);
+  const [featuredBooks, setFeaturedBooks] = useState<Book[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.get('/api/books?page=1')
+      .then(({ data }) => setFeaturedBooks(data.books.slice(0, 4)))
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <div className="space-y-16 pb-16">
@@ -16,10 +25,9 @@ export default function Home() {
           <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-white blur-3xl"></div>
           <div className="absolute -right-20 bottom-0 h-96 w-96 rounded-full bg-emerald-400 blur-3xl"></div>
         </div>
-        
         <div className="container relative mx-auto px-4">
           <div className="flex flex-col items-center text-center">
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="mb-6 text-4xl font-extrabold tracking-tight sm:text-6xl"
@@ -27,7 +35,7 @@ export default function Home() {
               Dê uma nova história aos <br />
               <span className="text-emerald-400">livros usados</span>
             </motion.h1>
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -35,7 +43,7 @@ export default function Home() {
             >
               Milhares de títulos com curadoria especial, preços incríveis e a garantia de qualidade que você só encontra no Sebo.
             </motion.p>
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -83,36 +91,36 @@ export default function Home() {
             Ver todos <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
-          {featuredBooks.map((book) => (
-            <BookCard key={book.id} book={book} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-80 animate-pulse rounded-xl bg-gray-100" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+            {featuredBooks.map((book) => (
+              <BookCard key={book.id} book={book} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Categories Banner */}
       <section className="container mx-auto px-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="group relative h-64 overflow-hidden rounded-2xl bg-emerald-100">
-            <img 
-              src="https://picsum.photos/seed/fiction/800/400" 
-              className="absolute inset-0 h-full w-full object-cover opacity-60 transition-transform duration-500 group-hover:scale-105" 
-              alt="Ficção"
-            />
+            <img src="https://picsum.photos/seed/fiction/800/400" className="absolute inset-0 h-full w-full object-cover opacity-60 transition-transform duration-500 group-hover:scale-105" alt="Ficção" />
             <div className="absolute inset-0 flex flex-col justify-center p-8">
               <h3 className="text-2xl font-bold text-emerald-900">Ficção & Literatura</h3>
               <p className="mb-4 text-emerald-800">Explore novos mundos e histórias envolventes.</p>
-              <Link to="/livros?categoria=Ficção" className="w-fit rounded-full bg-emerald-600 px-6 py-2 text-sm font-bold text-white shadow-lg hover:bg-emerald-700">
+              <Link to="/livros?categoria=Fantasia" className="w-fit rounded-full bg-emerald-600 px-6 py-2 text-sm font-bold text-white shadow-lg hover:bg-emerald-700">
                 Ver Livros
               </Link>
             </div>
           </div>
           <div className="group relative h-64 overflow-hidden rounded-2xl bg-amber-100">
-            <img 
-              src="https://picsum.photos/seed/nonfiction/800/400" 
-              className="absolute inset-0 h-full w-full object-cover opacity-60 transition-transform duration-500 group-hover:scale-105" 
-              alt="Não Ficção"
-            />
+            <img src="https://picsum.photos/seed/nonfiction/800/400" className="absolute inset-0 h-full w-full object-cover opacity-60 transition-transform duration-500 group-hover:scale-105" alt="Não Ficção" />
             <div className="absolute inset-0 flex flex-col justify-center p-8">
               <h3 className="text-2xl font-bold text-amber-900">Conhecimento & Realidade</h3>
               <p className="mb-4 text-amber-800">Biografias, história, ciência e muito mais.</p>
@@ -124,5 +132,5 @@ export default function Home() {
         </div>
       </section>
     </div>
-  );
+  )
 }

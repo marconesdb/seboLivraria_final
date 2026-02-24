@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+model Book {
+  id            String      @id @default(cuid())
+  title         String
+  author        String
+  price         Float
+  condition     Condition
+  category      String
+  isbn          String?
+  coverImage    String
+  description   String
+  stock         Int
+  publishedYear Int?
+  weightGrams   Int         @default(300)
+  orderItems    OrderItem[]
+  createdAt     DateTime    @default(now())
+}
+
+enum Condition {
+  OTIMO
+  BOM
+  REGULAR
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  status          OrderStatus @default(PENDENTE)
+  subtotal        Float
+  shippingCost    Float
+  total           Float
+  shippingService String?
+  trackingCode    String?
+  stripePaymentId String?
+  address         Json
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+enum OrderStatus {
+  PENDENTE
+  PAGO
+  ENVIADO
+  ENTREGUE
+  CANCELADO
+}
+
+model OrderItem {
+  id       String @id @default(cuid())
+  orderId  String
+  order    Order  @relation(fields: [orderId], references: [id])
+  bookId   String
+  book     Book   @relation(fields: [bookId], references: [id])
+  quantity Int
+  price    Float
+}

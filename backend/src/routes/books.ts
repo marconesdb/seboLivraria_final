@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { listBooks, getBook, createBook, updateBook, deleteBook } from '../controllers/bookController';
+import { authenticate, isAdmin } from '../middlewares/auth';
+const router = Router();
+router.get('/',        listBooks);
+router.get('/:id',     getBook);
+router.post('/',       authenticate, isAdmin, createBook);
+router.put('/:id',    authenticate, isAdmin, updateBook);
+router.delete('/:id', authenticate, isAdmin, deleteBook);
+export default router;

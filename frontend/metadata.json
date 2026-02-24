@@ -1,0 +1,7 @@
+{
+  "name": "Sebo - Livraria de Usados",
+  "description": "Uma plataforma moderna para compra e venda de livros usados, com curadoria especial e foco em sustentabilidade literária.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

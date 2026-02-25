@@ -6,17 +6,15 @@ import BookList from './pages/BookList';
 import BookDetail from './pages/BookDetail';
 import Cart from './pages/Cart';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Checkout from './pages/Checkout';
 import Admin from './pages/Admin';
 import { useAuthStore } from './store/authStore';
 
-// Protected Route Component
-const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: 'admin' | 'customer' }) => {
+const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: 'ADMIN' | 'CUSTOMER' }) => {
   const { isAuthenticated, user } = useAuthStore();
-  
   if (!isAuthenticated) return <Navigate to="/login" />;
   if (role && user?.role !== role) return <Navigate to="/" />;
-  
   return <>{children}</>;
 };
 
@@ -30,9 +28,7 @@ export default function App() {
           <Route path="livros/:id" element={<BookDetail />} />
           <Route path="carrinho" element={<Cart />} />
           <Route path="login" element={<Login />} />
-          <Route path="registro" element={<div className="container mx-auto p-12 text-center">Registro (Em breve)</div>} />
-          
-          {/* Protected Routes */}
+          <Route path="registro" element={<Register />} />
           <Route path="perfil" element={
             <ProtectedRoute>
               <div className="container mx-auto p-12 text-center">Meu Perfil (Em breve)</div>
@@ -48,7 +44,6 @@ export default function App() {
               <Checkout />
             </ProtectedRoute>
           } />
-          
           <Route path="*" element={
             <div className="container mx-auto flex h-96 flex-col items-center justify-center px-4">
               <h1 className="text-4xl font-bold text-emerald-700">404</h1>
@@ -57,10 +52,8 @@ export default function App() {
             </div>
           } />
         </Route>
-
-        {/* Admin Routes (No Layout) */}
         <Route path="admin" element={
-          <ProtectedRoute role="admin">
+          <ProtectedRoute role="ADMIN">
             <Admin />
           </ProtectedRoute>
         } />

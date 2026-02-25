@@ -16,13 +16,16 @@ const allowedOrigins = [
   'http://localhost:3000',
 ].filter(Boolean) as string[];
 
+// Aceita qualquer subdomínio do Vercel (previews de deploy)
+const isVercelPreview = (origin: string) =>
+  /^https:\/\/.*\.vercel\.app$/.test(origin);
+
 // Webhook Stripe precisa do body RAW — deve vir ANTES do express.json()
 app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(cors({
   origin: (origin, callback) => {
-    // permite requisições sem origin (ex: Postman, curl)
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || isVercelPreview(origin)) {
       callback(null, true);
     } else {
       callback(new Error(`CORS bloqueado para origin: ${origin}`));

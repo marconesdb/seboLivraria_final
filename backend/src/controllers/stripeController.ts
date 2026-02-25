@@ -26,7 +26,10 @@ export const createIntent = async (req: AuthRequest, res: Response) => {
     });
     const intent = await createPaymentIntent(total, { orderId: order.id, userId: req.userId! });
     res.json({ clientSecret: intent.client_secret, orderId: order.id, total });
-  } catch (e: any) { res.status(500).json({ error: e.message }); }
+  }  catch (e: any) {
+  console.error('SHIPPING ERROR:', e.message, e.stack);
+  res.status(500).json({ error: e.message, stack: e.stack });
+}
 };
 
 export const handleWebhook = async (req: Request, res: Response) => {

@@ -7,6 +7,7 @@ import BookDetail from './pages/BookDetail';
 import Cart from './pages/Cart';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Orders from './pages/Orders';
 import Checkout from './pages/Checkout';
 import Admin from './pages/Admin';
 import { useAuthStore } from './store/authStore';
@@ -36,7 +37,7 @@ export default function App() {
           } />
           <Route path="pedidos" element={
             <ProtectedRoute>
-              <div className="container mx-auto p-12 text-center">Meus Pedidos (Em breve)</div>
+              <Orders />
             </ProtectedRoute>
           } />
           <Route path="checkout" element={

@@ -8,6 +8,7 @@ import Cart from './pages/Cart';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Orders from './pages/Orders';
+import OrderConfirmed from './pages/OrderConfirmed';
 import Checkout from './pages/Checkout';
 import Admin from './pages/Admin';
 import { useAuthStore } from './store/authStore';
@@ -35,6 +36,7 @@ export default function App() {
               <div className="container mx-auto p-12 text-center">Meu Perfil (Em breve)</div>
             </ProtectedRoute>
           } />
+          <Route path="pedido-confirmado" element={<OrderConfirmed />} />
           <Route path="pedidos" element={
             <ProtectedRoute>
               <Orders />

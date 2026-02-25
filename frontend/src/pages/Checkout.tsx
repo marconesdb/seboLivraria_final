@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigate, Link } from 'react-router-dom';
+import { Navigate, Link, useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCartStore } from '../store/cartStore';
@@ -8,7 +8,10 @@ import { CreditCard, Truck, CheckCircle2, Loader2, Package } from 'lucide-react'
 import { toast } from 'react-hot-toast';
 import api from '../lib/api';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY, {
+  betas: ['custom_checkout_beta_5' as any],
+});
+
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 interface ShippingOption {
@@ -71,6 +74,7 @@ function PaymentForm({ total, onSuccess }: { total: number; onSuccess: () => voi
 // ─── Componente Principal ─────────────────────────────────────────────────────
 export default function Checkout() {
   const { items, getTotal, clearCart } = useCartStore();
+  const navigate = useNavigate();
   const [isFinished, setIsFinished] = useState(false);
 
   // Endereço
@@ -172,9 +176,8 @@ export default function Checkout() {
 
   // ── Sucesso ─────────────────────────────────────────────────────────────────
   const handleSuccess = () => {
-    setIsFinished(true);
     clearCart();
-    toast.success('Pagamento realizado com sucesso!');
+    navigate('/pedido-confirmado');
   };
 
   if (isFinished) {
@@ -324,7 +327,7 @@ export default function Checkout() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">2</div>
                 <h2 className="text-xl font-bold text-gray-900">Pagamento</h2>
               </div>
-              <Elements stripe={stripePromise} options={{ clientSecret, locale: 'pt-BR' }}>
+              <Elements stripe={stripePromise} options={{ clientSecret, locale: 'pt-BR', appearance: { theme: 'stripe' } }}>
                 <PaymentForm total={total} onSuccess={handleSuccess} />
               </Elements>
               <button onClick={() => setStep('address')} className="mt-4 text-sm text-emerald-600 hover:underline">

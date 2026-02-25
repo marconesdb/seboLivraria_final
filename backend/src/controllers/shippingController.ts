@@ -28,6 +28,7 @@ export const calculateShipping = async (req: Request, res: Response) => {
       logo: q.company.picture
     })));
   } catch (e: any) {
-    res.status(500).json({ error: e.message });
+    console.error('SHIPPING ERROR:', e.message, e.response?.data ?? '');
+    res.status(500).json({ error: e.message, detail: e.response?.data });
   }
 };

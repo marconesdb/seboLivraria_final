@@ -11,7 +11,9 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
-      <Toaster position="bottom-right" />
+     
+      <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
+
     </div>
   );
 }

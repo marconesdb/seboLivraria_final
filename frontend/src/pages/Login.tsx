@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BookOpen, Mail, Lock, ArrowRight } from 'lucide-react'
-import { GoogleLogin } from '@react-oauth/google'
+import { useGoogleLogin } from '@react-oauth/google'
 import { useAuthStore } from '../store/authStore'
 import api from '../lib/api'
 import { toast } from 'react-hot-toast'
@@ -27,10 +27,16 @@ export default function Login() {
     }
   }
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (tokenResponse: any) => {
     try {
+      // Busca os dados do usuário com o access_token
+      const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+      }).then(r => r.json())
+
       const { data } = await api.post('/api/auth/google', {
-        credential: credentialResponse.credential,
+        credential: tokenResponse.access_token,
+        userInfo,
       })
       setAuth(data.user, data.token)
       toast.success(`Bem-vindo, ${data.user.name}!`)
@@ -39,6 +45,11 @@ export default function Login() {
       toast.error(err.response?.data?.error || 'Erro ao entrar com Google')
     }
   }
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => toast.error('Erro ao entrar com Google'),
+  })
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4 py-12">
@@ -53,16 +64,14 @@ export default function Login() {
         </div>
 
         {/* Google Login */}
-        <div className="flex justify-center">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => toast.error('Erro ao entrar com Google')}
-            width="368"
-            text="signin_with"
-            shape="rectangular"
-            logo_alignment="left"
-          />
-        </div>
+        <button
+          type="button"
+          onClick={() => googleLogin()}
+          className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+        >
+          <img src="https://www.google.com/favicon.ico" alt="Google" className="h-5 w-5" />
+          Entrar com Google
+        </button>
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">

@@ -39,27 +39,18 @@ export const login = async (req: Request, res: Response) => {
 
 export const googleLogin = async (req: Request, res: Response) => {
   try {
-    const { credential } = req.body;
-    if (!credential) return res.status(400).json({ error: 'Token Google ausente' });
+    const { userInfo } = req.body;
+    if (!userInfo?.email) return res.status(400).json({ error: 'Dados do Google ausentes' });
 
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+    const { email, name, sub } = userInfo;
 
-    const payload = ticket.getPayload();
-    if (!payload?.email) return res.status(400).json({ error: 'Token inválido' });
-
-    const { email, name, sub } = payload;
-
-    // Busca ou cria o usuário
     let user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       user = await prisma.user.create({
         data: {
           name: name || email,
           email,
-          password: await bcrypt.hash(sub, 10), // senha inutilizável (login só via Google)
+          password: await bcrypt.hash(sub || email, 10),
         },
       });
     }

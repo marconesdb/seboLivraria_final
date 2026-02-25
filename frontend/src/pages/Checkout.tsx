@@ -5,17 +5,15 @@ import { formatPrice } from '../utils';
 import { CreditCard, Truck, CheckCircle2, Loader2, Package } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
 interface ShippingOption {
   id: number;
   name: string;
-  company: string;       // só o nome da transportadora
-  price: number;         // já vem como number
-  deliveryDays: number;  // dias úteis
-  logo: string;          // URL da logo
+  company: string;
+  price: number;
+  deliveryDays: number;
+  logo: string;
 }
 
-// ─── Componente ───────────────────────────────────────────────────────────────
 export default function Checkout() {
   const { items, getTotal, clearCart } = useCartStore();
   const navigate = useNavigate();
@@ -26,14 +24,35 @@ export default function Checkout() {
   const [address, setAddress] = useState('');
   const [number, setNumber] = useState('');
   const [complement, setComplement] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+
+  // Erros
+  const [cepError, setCepError] = useState('');
+  const [addressError, setAddressError] = useState('');
+  const [numberError, setNumberError] = useState('');
 
   // Frete
   const [loadingShipping, setLoadingShipping] = useState(false);
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
-  const [cepError, setCepError] = useState('');
 
   if (items.length === 0 && !isFinished) return <Navigate to="/carrinho" />;
+
+  // ── Busca endereço pelo CEP (ViaCEP) ───────────────────────────────────────
+  const handleCepBlur = async () => {
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length !== 8) return;
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await res.json();
+      if (!data.erro) {
+        setAddress(data.logradouro || '');
+        setCity(data.localidade || '');
+        setState(data.uf || '');
+      }
+    } catch {}
+  };
 
   // ── Calcular Frete ──────────────────────────────────────────────────────────
   const handleCalculateShipping = async () => {
@@ -46,30 +65,19 @@ export default function Checkout() {
     setShippingOptions([]);
     setSelectedShipping(null);
     setLoadingShipping(true);
-
     try {
-      // Monta payload: peso total estimado (300g por livro) e dimensões fixas
-      const totalWeight = items.reduce((acc, i) => acc + 0.3 * i.quantity, 0);
-
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/shipping/calculate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           postalCode: cleanCep,
-          items: items.map(i => ({
-            bookId: i.book.id,
-            quantity: i.quantity,
-          })),
+          items: items.map(i => ({ bookId: i.book.id, quantity: i.quantity })),
         }),
       });
-
       if (!res.ok) throw new Error('Erro ao calcular frete');
       const data: ShippingOption[] = await res.json();
-
-      // Filtra opções com erro (Melhor Envio retorna error nos indisponíveis)
       const available = data.filter(o => o.price && !('error' in o));
       if (available.length === 0) throw new Error('Nenhuma opção disponível para este CEP');
-
       setShippingOptions(available);
     } catch (err: any) {
       toast.error(err.message || 'Não foi possível calcular o frete');
@@ -81,10 +89,13 @@ export default function Checkout() {
   // ── Finalizar ───────────────────────────────────────────────────────────────
   const handleFinish = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedShipping) {
-      toast.error('Selecione uma opção de frete antes de pagar.');
-      return;
-    }
+    let valid = true;
+    if (!address.trim()) { setAddressError('Endereço obrigatório'); valid = false; }
+    else setAddressError('');
+    if (!number.trim()) { setNumberError('Número obrigatório'); valid = false; }
+    else setNumberError('');
+    if (!selectedShipping) { toast.error('Selecione uma opção de frete antes de pagar.'); valid = false; }
+    if (!valid) return;
     setIsFinished(true);
     clearCart();
     toast.success('Pedido realizado com sucesso!');
@@ -134,32 +145,26 @@ export default function Checkout() {
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {/* CEP + botão calcular */}
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-xs font-bold uppercase text-gray-500">CEP</label>
+                <label className="mb-1 block text-xs font-bold uppercase text-gray-500">CEP *</label>
                 <div className="flex gap-2">
                   <input
-                    type="text"
-                    value={cep}
+                    type="text" value={cep}
                     onChange={e => {
-                      // Máscara 00000-000
                       const v = e.target.value.replace(/\D/g, '').slice(0, 8);
                       setCep(v.length > 5 ? `${v.slice(0, 5)}-${v.slice(5)}` : v);
                       setShippingOptions([]);
                       setSelectedShipping(null);
                     }}
+                    onBlur={handleCepBlur}
                     className="flex-1 rounded-lg border bg-gray-50 p-3 text-sm focus:outline-none"
                     placeholder="00000-000"
                   />
                   <button
-                    type="button"
-                    onClick={handleCalculateShipping}
-                    disabled={loadingShipping}
+                    type="button" onClick={handleCalculateShipping} disabled={loadingShipping}
                     className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-60"
                   >
-                    {loadingShipping
-                      ? <Loader2 className="h-4 w-4 animate-spin" />
-                      : <Truck className="h-4 w-4" />}
+                    {loadingShipping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Truck className="h-4 w-4" />}
                     {loadingShipping ? 'Calculando...' : 'Calcular'}
                   </button>
                 </div>
@@ -167,25 +172,47 @@ export default function Checkout() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-xs font-bold uppercase text-gray-500">Endereço</label>
+                <label className="mb-1 block text-xs font-bold uppercase text-gray-500">Endereço *</label>
                 <input
-                  type="text" value={address} onChange={e => setAddress(e.target.value)}
-                  className="w-full rounded-lg border bg-gray-50 p-3 text-sm focus:outline-none"
+                  type="text" value={address}
+                  onChange={e => { setAddress(e.target.value); setAddressError(''); }}
+                  className={`w-full rounded-lg border bg-gray-50 p-3 text-sm focus:outline-none ${addressError ? 'border-red-400' : ''}`}
                   placeholder="Rua, Avenida, etc."
                 />
+                {addressError && <p className="mt-1 text-xs text-red-500">{addressError}</p>}
               </div>
+
               <div>
-                <label className="mb-1 block text-xs font-bold uppercase text-gray-500">Número</label>
+                <label className="mb-1 block text-xs font-bold uppercase text-gray-500">Número *</label>
                 <input
-                  type="text" value={number} onChange={e => setNumber(e.target.value)}
-                  className="w-full rounded-lg border bg-gray-50 p-3 text-sm focus:outline-none"
+                  type="text" value={number}
+                  onChange={e => { setNumber(e.target.value); setNumberError(''); }}
+                  className={`w-full rounded-lg border bg-gray-50 p-3 text-sm focus:outline-none ${numberError ? 'border-red-400' : ''}`}
+                  placeholder="Ex: 123"
                 />
+                {numberError && <p className="mt-1 text-xs text-red-500">{numberError}</p>}
               </div>
+
               <div>
                 <label className="mb-1 block text-xs font-bold uppercase text-gray-500">Complemento</label>
                 <input
                   type="text" value={complement} onChange={e => setComplement(e.target.value)}
                   className="w-full rounded-lg border bg-gray-50 p-3 text-sm focus:outline-none"
+                  placeholder="Apto, Bloco, etc."
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-bold uppercase text-gray-500">Cidade</label>
+                <input type="text" value={city} readOnly
+                  className="w-full rounded-lg border bg-gray-100 p-3 text-sm text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-bold uppercase text-gray-500">Estado</label>
+                <input type="text" value={state} readOnly
+                  className="w-full rounded-lg border bg-gray-100 p-3 text-sm text-gray-500 cursor-not-allowed"
                 />
               </div>
             </div>
@@ -198,40 +225,26 @@ export default function Checkout() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">2</div>
                 <h2 className="text-xl font-bold text-gray-900">Opções de Entrega</h2>
               </div>
-
               <div className="space-y-3">
                 {shippingOptions.map(option => {
                   const isSelected = selectedShipping?.id === option.id;
                   return (
                     <button
-                      key={option.id}
-                      type="button"
-                      onClick={() => setSelectedShipping(option)}
+                      key={option.id} type="button" onClick={() => setSelectedShipping(option)}
                       className={`flex w-full items-center gap-4 rounded-xl border-2 p-4 text-left transition-all ${
-                        isSelected
-                          ? 'border-emerald-600 bg-emerald-50'
-                          : 'border-gray-200 hover:border-emerald-300 hover:bg-gray-50'
+                        isSelected ? 'border-emerald-600 bg-emerald-50' : 'border-gray-200 hover:border-emerald-300 hover:bg-gray-50'
                       }`}
                     >
-                      {/* Logo da transportadora */}
-                      {option.logo ? (
-                        <img src={option.logo} alt={option.company} className="h-8 w-8 rounded object-contain" />
-                      ) : (
-                        <Package className="h-8 w-8 text-gray-400" />
-                      )}
-
+                      {option.logo
+                        ? <img src={option.logo} alt={option.company} className="h-8 w-8 rounded object-contain" />
+                        : <Package className="h-8 w-8 text-gray-400" />}
                       <div className="flex-1">
                         <p className="text-sm font-bold text-gray-900">{option.name}</p>
                         <p className="text-xs text-gray-500">{option.company} · {option.deliveryDays} dias úteis</p>
                       </div>
-
-                      <div className="text-right">
-                        <p className={`text-sm font-bold ${isSelected ? 'text-emerald-700' : 'text-gray-800'}`}>
-                          {formatPrice(option.price)}
-                        </p>
-                      </div>
-
-                      {/* Indicador de selecionado */}
+                      <p className={`text-sm font-bold ${isSelected ? 'text-emerald-700' : 'text-gray-800'}`}>
+                        {formatPrice(option.price)}
+                      </p>
                       <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${
                         isSelected ? 'border-emerald-600 bg-emerald-600' : 'border-gray-300'
                       }`}>
@@ -272,7 +285,6 @@ export default function Checkout() {
         {/* ── Resumo do Pedido ── */}
         <aside className="h-fit space-y-6 rounded-2xl border bg-gray-50 p-6">
           <h2 className="text-xl font-bold text-gray-900">Revisão do Pedido</h2>
-
           <div className="max-h-64 space-y-4 overflow-y-auto pr-2">
             {items.map(item => (
               <div key={item.book.id} className="flex gap-3">
@@ -284,34 +296,25 @@ export default function Checkout() {
               </div>
             ))}
           </div>
-
           <div className="border-t pt-4 space-y-2">
             <div className="flex justify-between text-sm text-gray-600">
               <span>Subtotal</span>
               <span>{formatPrice(subtotal)}</span>
             </div>
-
             <div className="flex justify-between text-sm text-gray-600">
               <span>Frete</span>
-              {selectedShipping ? (
-                <span className="font-medium text-gray-800">{formatPrice(shippingPrice)}</span>
-              ) : (
-                <span className="text-gray-400 italic text-xs">calcule acima</span>
-              )}
+              {selectedShipping
+                ? <span className="font-medium text-gray-800">{formatPrice(shippingPrice)}</span>
+                : <span className="text-gray-400 italic text-xs">calcule acima</span>}
             </div>
-
             {selectedShipping && (
-              <div className="flex justify-between text-xs text-gray-400">
-                <span>{selectedShipping.name} · {selectedShipping.delivery_time} dias úteis</span>
-              </div>
+              <p className="text-xs text-gray-400">{selectedShipping.name} · {selectedShipping.deliveryDays} dias úteis</p>
             )}
-
             <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t">
               <span>Total</span>
               <span>{formatPrice(total)}</span>
             </div>
           </div>
-
           <button
             onClick={handleFinish}
             disabled={!selectedShipping}
@@ -319,11 +322,8 @@ export default function Checkout() {
           >
             Confirmar e Pagar
           </button>
-
           {!selectedShipping && (
-            <p className="text-center text-xs text-gray-400">
-              Selecione uma opção de frete para continuar
-            </p>
+            <p className="text-center text-xs text-gray-400">Selecione uma opção de frete para continuar</p>
           )}
         </aside>
       </div>

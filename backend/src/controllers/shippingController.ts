@@ -19,7 +19,7 @@ export const calculateShipping = async (req: Request, res: Response) => {
     });
     const quotes = await getShippingQuotes(
       process.env.STORE_CEP!,
-      postalCode.replace(/D/g, ''),
+      postalCode.replace(/\D/g, ''),
       shippingItems
     );
     res.json(quotes.map((q: any) => ({

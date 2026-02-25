@@ -172,8 +172,8 @@ export default function Checkout() {
 
   // ── Sucesso ─────────────────────────────────────────────────────────────────
   const handleSuccess = () => {
-    clearCart();
     setIsFinished(true);
+    clearCart();
     toast.success('Pagamento realizado com sucesso!');
   };
 

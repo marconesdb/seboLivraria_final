@@ -9,12 +9,26 @@ import stripeRoutes from './routes/stripe';
 
 const app = express();
 
+const allowedOrigins = [
+  process.env.FRONTEND_URL,                        // valor do .env sem barra
+  process.env.FRONTEND_URL?.replace(/\/$/, ''),    // garante sem barra
+  'http://localhost:5173',                          // dev local
+  'http://localhost:3000',
+].filter(Boolean) as string[];
+
 // Webhook Stripe precisa do body RAW — deve vir ANTES do express.json()
 app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  credentials: true
+  origin: (origin, callback) => {
+    // permite requisições sem origin (ex: Postman, curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS bloqueado para origin: ${origin}`));
+    }
+  },
+  credentials: true,
 }));
 
 app.use('/api/auth',     authRoutes);

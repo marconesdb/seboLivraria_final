@@ -6,17 +6,17 @@ import bookRoutes from './routes/books';
 import orderRoutes from './routes/orders';
 import shippingRoutes from './routes/shipping';
 import stripeRoutes from './routes/stripe';
+import adminRoutes from './routes/admin';          // ✅ novo
 
 const app = express();
 
 const allowedOrigins = [
-  process.env.FRONTEND_URL,                        // valor do .env sem barra
-  process.env.FRONTEND_URL?.replace(/\/$/, ''),    // garante sem barra
-  'http://localhost:5173',                          // dev local
+  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL?.replace(/\/$/, ''),
+  'http://localhost:5173',
   'http://localhost:3000',
 ].filter(Boolean) as string[];
 
-// Aceita qualquer subdomínio do Vercel (previews de deploy)
 const isVercelPreview = (origin: string) =>
   /^https:\/\/.*\.vercel\.app$/.test(origin);
 
@@ -39,6 +39,7 @@ app.use('/api/books',    bookRoutes);
 app.use('/api/orders',   orderRoutes);
 app.use('/api/shipping', shippingRoutes);
 app.use('/api/stripe',   stripeRoutes);
+app.use('/api/admin',    adminRoutes);             // ✅ novo
 
 app.get('/', (_req, res) => res.json({ status: 'Sebo API rodando ✅' }));
 

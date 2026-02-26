@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   BarChart3, ShoppingBag, BookOpen, Users,
   Loader2, AlertCircle, DollarSign, Package,
@@ -216,7 +216,7 @@ function BooksTab() {
   const load = () => {
     setLoading(true); setError(false)
     api.get('/api/books')
-      .then(r => setBooks(r.data))
+      .then(r => setBooks(Array.isArray(r.data) ? r.data : r.data.books ?? []))
       .catch(() => setError(true))
       .finally(() => setLoading(false))
   }

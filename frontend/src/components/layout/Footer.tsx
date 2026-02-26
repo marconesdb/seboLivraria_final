@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BookOpen, Instagram, Mail, Phone, MapPin } from 'lucide-react';
+import { Instagram, Mail, Phone, MapPin } from 'lucide-react';
 
 const FacebookIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -19,12 +19,12 @@ export default function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="space-y-4">
-            <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-emerald-700">
-              <BookOpen className="h-8 w-8" />
-              <span>Sebo</span>
+            {/* ✅ Logo formatada corretamente */}
+            <Link to="/" className="inline-block">
+              <img src="/logo.png" alt="Logo Sebo" className="h-16 w-auto object-contain" />
             </Link>
             <p className="text-sm text-gray-600">
-              Sua livraria de usados favorita. Dando uma nova vida aos livros e conectando leitores apaixonados.
+              Universo da Páginas. Sua livraria de usados favorita. Dando uma nova vida aos livros e conectando leitores apaixonados.
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-gray-400 hover:text-emerald-600"><Instagram className="h-5 w-5" /></a>
@@ -71,9 +71,9 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        
+
         <div className="mt-12 border-t pt-8 text-center text-xs text-gray-500">
-          <p>© {new Date().getFullYear()} Sebo Livraria de Usados. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} Sebo Universo da Páginas Livraria de Usados. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

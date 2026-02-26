@@ -47,6 +47,14 @@ export default function App() {
               <Checkout />
             </ProtectedRoute>
           } />
+
+          {/* ✅ Admin agora dentro do Layout — Zustand lê o estado corretamente */}
+          <Route path="admin" element={
+            <ProtectedRoute role="ADMIN">
+              <Admin />
+            </ProtectedRoute>
+          } />
+
           <Route path="*" element={
             <div className="container mx-auto flex h-96 flex-col items-center justify-center px-4">
               <h1 className="text-4xl font-bold text-emerald-700">404</h1>
@@ -55,11 +63,6 @@ export default function App() {
             </div>
           } />
         </Route>
-        <Route path="admin" element={
-          <ProtectedRoute role="ADMIN">
-            <Admin />
-          </ProtectedRoute>
-        } />
       </Routes>
     </BrowserRouter>
   );

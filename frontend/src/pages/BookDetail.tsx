@@ -1,29 +1,52 @@
-import React, { useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { MOCK_BOOKS } from '../utils/mockData';
 import { formatPrice } from '../utils';
 import { useCartStore } from '../store/cartStore';
-import { ShoppingCart, ArrowLeft, ShieldCheck, Truck, RefreshCcw, Star, Info } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, ShieldCheck, Truck, RefreshCcw, Info, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import BookCard from '../components/ui/BookCard';
+import api from '../lib/api';
+import { Book } from '../types';
 
 export default function BookDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const addItem = useCartStore((state) => state.addItem);
 
-  const book = useMemo(() => MOCK_BOOKS.find(b => b.id === id), [id]);
+  const [book, setBook] = useState<Book | null>(null);
+  const [related, setRelated] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  if (!book) {
-    return (
-      <div className="container mx-auto flex h-96 flex-col items-center justify-center px-4">
-        <h1 className="mb-4 text-2xl font-bold">Livro não encontrado</h1>
-        <Link to="/livros" className="text-emerald-600 hover:underline">Voltar para o catálogo</Link>
-      </div>
-    );
-  }
+  useEffect(() => {
+    setLoading(true);
+    setNotFound(false);
+    api.get(`/api/books/${id}`)
+      .then(({ data }) => {
+        setBook(data);
+        // Busca livros relacionados pela categoria
+        return api.get(`/api/books?category=${encodeURIComponent(data.category)}&limit=5`);
+      })
+      .then(({ data }) => {
+        const books = Array.isArray(data) ? data : data.books ?? [];
+        setRelated(books.filter((b: Book) => b.id !== id).slice(0, 4));
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [id]);
 
-  const relatedBooks = MOCK_BOOKS.filter(b => b.category === book.category && b.id !== book.id).slice(0, 4);
+  if (loading) return (
+    <div className="flex h-96 items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+    </div>
+  );
+
+  if (notFound || !book) return (
+    <div className="container mx-auto flex h-96 flex-col items-center justify-center px-4">
+      <h1 className="mb-4 text-2xl font-bold">Livro não encontrado</h1>
+      <Link to="/livros" className="text-emerald-600 hover:underline">Voltar para o catálogo</Link>
+    </div>
+  );
 
   const handleAddToCart = () => {
     addItem(book);
@@ -32,7 +55,7 @@ export default function BookDetail() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <button 
+      <button
         onClick={() => navigate(-1)}
         className="mb-8 flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-emerald-600"
       >
@@ -41,18 +64,12 @@ export default function BookDetail() {
       </button>
 
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-        {/* Image Gallery */}
-        <div className="space-y-4">
-          <div className="aspect-[3/4] overflow-hidden rounded-2xl border bg-gray-50">
-            <img 
-              src={book.coverImage} 
-              alt={book.title} 
-              className="h-full w-full object-contain p-8"
-            />
-          </div>
+        {/* Imagem */}
+        <div className="aspect-[3/4] overflow-hidden rounded-2xl border bg-gray-50">
+          <img src={book.coverImage} alt={book.title} className="h-full w-full object-contain p-8" />
         </div>
 
-        {/* Book Info */}
+        {/* Informações */}
         <div className="flex flex-col">
           <div className="mb-4 flex items-center gap-2">
             <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 uppercase">
@@ -62,7 +79,9 @@ export default function BookDetail() {
           </div>
 
           <h1 className="mb-2 text-3xl font-bold text-gray-900 md:text-4xl">{book.title}</h1>
-          <p className="mb-6 text-xl text-gray-600">por <span className="font-medium text-emerald-600">{book.author}</span></p>
+          <p className="mb-6 text-xl text-gray-600">
+            por <span className="font-medium text-emerald-600">{book.author}</span>
+          </p>
 
           <div className="mb-8 flex items-center gap-4">
             <span className="text-4xl font-bold text-emerald-700">{formatPrice(book.price)}</span>
@@ -75,7 +94,8 @@ export default function BookDetail() {
           <div className="mb-8 space-y-4">
             <button
               onClick={handleAddToCart}
-              className="flex w-full items-center justify-center gap-3 rounded-xl bg-emerald-600 py-4 text-lg font-bold text-white transition-colors hover:bg-emerald-700"
+              disabled={book.stock === 0}
+              className="flex w-full items-center justify-center gap-3 rounded-xl bg-emerald-600 py-4 text-lg font-bold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ShoppingCart className="h-6 w-6" />
               Adicionar ao Carrinho
@@ -85,7 +105,7 @@ export default function BookDetail() {
             </p>
           </div>
 
-          {/* Features */}
+          {/* Selos */}
           <div className="mb-8 grid grid-cols-3 gap-4 border-y py-6">
             <div className="flex flex-col items-center text-center">
               <ShieldCheck className="mb-2 h-6 w-6 text-emerald-600" />
@@ -101,27 +121,25 @@ export default function BookDetail() {
             </div>
           </div>
 
-          {/* Description */}
-          <div className="mb-8">
-            <h3 className="mb-4 flex items-center gap-2 font-bold text-gray-900">
-              <Info className="h-5 w-5 text-emerald-600" />
-              Descrição
-            </h3>
-            <p className="leading-relaxed text-gray-600">
-              {book.description}
-            </p>
-          </div>
+          {/* Descrição */}
+          {book.description && (
+            <div className="mb-8">
+              <h3 className="mb-4 flex items-center gap-2 font-bold text-gray-900">
+                <Info className="h-5 w-5 text-emerald-600" />
+                Descrição
+              </h3>
+              <p className="leading-relaxed text-gray-600">{book.description}</p>
+            </div>
+          )}
 
-          {/* Specs */}
+          {/* Ficha técnica */}
           <div className="rounded-xl bg-gray-50 p-6">
             <h3 className="mb-4 font-bold text-gray-900">Ficha Técnica</h3>
             <dl className="grid grid-cols-2 gap-y-3 text-sm">
               <dt className="text-gray-500">ISBN</dt>
-              <dd className="font-medium text-gray-900">{book.isbn || 'N/A'}</dd>
+              <dd className="font-medium text-gray-900">{(book as any).isbn || 'N/A'}</dd>
               <dt className="text-gray-500">Ano de Publicação</dt>
-              <dd className="font-medium text-gray-900">{book.publishedYear || 'N/A'}</dd>
-              <dt className="text-gray-500">Editora</dt>
-              <dd className="font-medium text-gray-900">Companhia das Letras</dd>
+              <dd className="font-medium text-gray-900">{(book as any).publishedYear || 'N/A'}</dd>
               <dt className="text-gray-500">Idioma</dt>
               <dd className="font-medium text-gray-900">Português</dd>
             </dl>
@@ -129,14 +147,12 @@ export default function BookDetail() {
         </div>
       </div>
 
-      {/* Related Books */}
-      {relatedBooks.length > 0 && (
+      {/* Livros relacionados */}
+      {related.length > 0 && (
         <section className="mt-20">
           <h2 className="mb-8 text-2xl font-bold text-gray-900">Quem viu este livro, também viu</h2>
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
-            {relatedBooks.map(b => (
-              <BookCard key={b.id} book={b} />
-            ))}
+            {related.map(b => <BookCard key={b.id} book={b} />)}
           </div>
         </section>
       )}

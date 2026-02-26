@@ -7,6 +7,7 @@ import orderRoutes from './routes/orders';
 import shippingRoutes from './routes/shipping';
 import stripeRoutes from './routes/stripe';
 import adminRoutes from './routes/admin';          // ✅ novo
+import { prisma } from './lib/prisma';             // ⚠️ temporário
 
 const app = express();
 
@@ -42,6 +43,15 @@ app.use('/api/stripe',   stripeRoutes);
 app.use('/api/admin',    adminRoutes);             // ✅ novo
 
 app.get('/', (_req, res) => res.json({ status: 'Sebo API rodando ✅' }));
+
+// ⚠️ ROTA TEMPORÁRIA — remover após usar!
+app.get('/setup-admin', async (_req, res) => {
+  await prisma.user.update({
+    where: { email: 'sebolivrariaa@gmail.com' },
+    data: { role: 'ADMIN' }
+  });
+  res.json({ ok: true, message: 'Admin configurado com sucesso!' });
+});
 
 const PORT = process.env.PORT || 3333;
 app.listen(PORT, () => console.log(`🚀 Server rodando na porta ${PORT}`));

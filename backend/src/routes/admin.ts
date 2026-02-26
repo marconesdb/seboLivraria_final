@@ -95,10 +95,10 @@ router.patch('/users/:id', async (req, res) => {
 
 // ─── Livros: criar ────────────────────────────────────────────────────────────
 router.post('/books', async (req, res) => {
-  const { title, author, price, stock, coverImage } = req.body;
+  const { title, author, price, stock, coverImage, condition, category, description } = req.body;
   try {
     const book = await prisma.book.create({
-      data: { title, author, price, stock, coverImage },
+      data: { title, author, price, stock, coverImage, condition, category, description },
     });
     res.status(201).json(book);
   } catch {
@@ -108,11 +108,11 @@ router.post('/books', async (req, res) => {
 
 // ─── Livros: editar ───────────────────────────────────────────────────────────
 router.put('/books/:id', async (req, res) => {
-  const { title, author, price, stock, coverImage } = req.body;
+  const { title, author, price, stock, coverImage, condition, category, description } = req.body;
   try {
     const book = await prisma.book.update({
       where: { id: req.params.id },
-      data: { title, author, price, stock, coverImage },
+      data: { title, author, price, stock, coverImage, condition, category, description },
     });
     res.json(book);
   } catch {

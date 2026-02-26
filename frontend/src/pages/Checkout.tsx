@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Navigate, Link, useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -75,6 +75,7 @@ function PaymentForm({ total, onSuccess }: { total: number; onSuccess: () => voi
 export default function Checkout() {
   const { items, getTotal, clearCart } = useCartStore();
   const navigate = useNavigate();
+  const finishing = useRef(false);
 
   // Endereço
   const [cep, setCep] = useState('');
@@ -99,7 +100,7 @@ export default function Checkout() {
   const [loadingIntent, setLoadingIntent] = useState(false);
   const [step, setStep] = useState<'address' | 'payment'>('address');
 
-  if (items.length === 0) return <Navigate to="/carrinho" />;
+  if (items.length === 0 && !finishing.current) return <Navigate to="/carrinho" />;
 
   const subtotal = getTotal();
   const shippingPrice = selectedShipping?.price ?? 0;
@@ -175,6 +176,7 @@ export default function Checkout() {
 
   // ── Sucesso ─────────────────────────────────────────────────────────────────
   const handleSuccess = () => {
+    finishing.current = true;
     clearCart();
     navigate('/pedido-confirmado');
   };

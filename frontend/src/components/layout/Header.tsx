@@ -72,7 +72,8 @@ export default function Header() {
                   Olá, {user?.name.split(' ')[0]}
                 </button>
                 {/* Mini dropdown ao hover */}
-                <div className="absolute right-0 top-full mt-1 hidden w-40 rounded-xl border bg-white shadow-lg group-hover:flex flex-col py-1 z-50">
+                <div className="absolute right-0 top-full pt-2 hidden w-40 group-hover:flex flex-col z-50">
+                <div className="rounded-xl border bg-white shadow-lg flex flex-col py-1">
                   <Link
                     to="/perfil"
                     className="px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
@@ -92,6 +93,7 @@ export default function Header() {
                   >
                     Sair
                   </button>
+                </div>
                 </div>
               </div>
             </div>

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Search, Menu, X, BookOpen } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, X, ClipboardList } from 'lucide-react';
 import { useCartStore } from '../../store/cartStore';
 import { useAuthStore } from '../../store/authStore';
-import { cn } from '../../utils';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,10 +22,9 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-emerald-700">
-        <img src="/logo.png" alt="Logo Sebo" className="h-48 w-48 object-contain" />
-        <span className="hidden sm:inline  text-gray-600">Universo das Páginas</span>
-      </Link>
-
+          <img src="/logo.png" alt="Logo Sebo" className="h-48 w-48 object-contain" />
+          <span className="hidden sm:inline text-gray-600">Universo das Páginas</span>
+        </Link>
 
         {/* Desktop Search */}
         <form onSubmit={handleSearch} className="hidden max-w-md flex-1 px-8 md:flex">
@@ -46,7 +44,7 @@ export default function Header() {
           <Link to="/livros" className="hidden text-sm font-medium text-gray-600 hover:text-emerald-600 md:block">
             Catálogo
           </Link>
-          
+
           <Link to="/carrinho" className="relative p-2 text-gray-600 hover:text-emerald-600">
             <ShoppingCart className="h-6 w-6" />
             {itemCount > 0 && (
@@ -58,18 +56,50 @@ export default function Header() {
 
           {isAuthenticated ? (
             <div className="hidden items-center gap-4 md:flex">
-              <Link to="/perfil" className="text-sm font-medium text-gray-600 hover:text-emerald-600">
-                Olá, {user?.name.split(' ')[0]}
-              </Link>
-              <button
-                onClick={logout}
-                className="text-sm font-medium text-red-600 hover:text-red-700"
+              {/* ✅ Link Meus Pedidos no desktop */}
+              <Link
+                to="/pedidos"
+                className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-emerald-600"
               >
-                Sair
-              </button>
+                <ClipboardList className="h-4 w-4" />
+                Meus Pedidos
+              </Link>
+
+              {/* Dropdown do usuário */}
+              <div className="relative group">
+                <button className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-emerald-600">
+                  <User className="h-4 w-4" />
+                  Olá, {user?.name.split(' ')[0]}
+                </button>
+                {/* Mini dropdown ao hover */}
+                <div className="absolute right-0 top-full mt-1 hidden w-40 rounded-xl border bg-white shadow-lg group-hover:flex flex-col py-1 z-50">
+                  <Link
+                    to="/perfil"
+                    className="px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
+                  >
+                    Meu Perfil
+                  </Link>
+                  <Link
+                    to="/pedidos"
+                    className="px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
+                  >
+                    Meus Pedidos
+                  </Link>
+                  <hr className="my-1" />
+                  <button
+                    onClick={logout}
+                    className="px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                  >
+                    Sair
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
-            <Link to="/login" className="hidden items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 md:flex">
+            <Link
+              to="/login"
+              className="hidden items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 md:flex"
+            >
               <User className="h-4 w-4" />
               Entrar
             </Link>
@@ -84,7 +114,7 @@ export default function Header() {
         </nav>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu — já estava correto, mantido */}
       {isMenuOpen && (
         <div className="border-t bg-white p-4 md:hidden">
           <form onSubmit={handleSearch} className="mb-4">

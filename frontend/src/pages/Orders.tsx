@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Package, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { Package, ChevronDown, ChevronUp, Loader2, AlertCircle } from 'lucide-react'
 import api from '../lib/api'
 import { formatPrice } from '../utils'
 
@@ -9,6 +9,15 @@ interface OrderItem {
   quantity: number
   price: number
   book: { id: string; title: string; author: string; coverImage: string }
+}
+
+interface Address {
+  address: string
+  number: string
+  complement?: string
+  city: string
+  state: string
+  cep: string
 }
 
 interface Order {
@@ -20,33 +29,49 @@ interface Order {
   shippingService: string | null
   trackingCode: string | null
   createdAt: string
-  address: any
+  address: Address | null
   items: OrderItem[]
 }
 
 const statusConfig = {
-  PENDENTE:  { label: 'Pendente',   color: 'bg-yellow-100 text-yellow-700' },
-  PAGO:      { label: 'Pago',       color: 'bg-blue-100 text-blue-700' },
-  ENVIADO:   { label: 'Enviado',    color: 'bg-purple-100 text-purple-700' },
-  ENTREGUE:  { label: 'Entregue',   color: 'bg-emerald-100 text-emerald-700' },
-  CANCELADO: { label: 'Cancelado',  color: 'bg-red-100 text-red-700' },
+  PENDENTE:  { label: 'Pendente',  color: 'bg-yellow-100 text-yellow-700' },
+  PAGO:      { label: 'Pago',      color: 'bg-blue-100 text-blue-700' },
+  ENVIADO:   { label: 'Enviado',   color: 'bg-purple-100 text-purple-700' },
+  ENTREGUE:  { label: 'Entregue',  color: 'bg-emerald-100 text-emerald-700' },
+  CANCELADO: { label: 'Cancelado', color: 'bg-red-100 text-red-700' },
 }
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
 
   useEffect(() => {
     api.get('/api/orders')
       .then(r => setOrders(r.data))
-      .catch(() => {})
+      .catch(() => setError(true))          // ✅ captura erro e exibe feedback
       .finally(() => setLoading(false))
   }, [])
 
   if (loading) return (
     <div className="flex h-64 items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+    </div>
+  )
+
+  // ✅ Tela de erro de rede/API
+  if (error) return (
+    <div className="container mx-auto flex h-[60vh] flex-col items-center justify-center px-4 text-center">
+      <AlertCircle className="mb-4 h-16 w-16 text-red-400" />
+      <h1 className="mb-2 text-2xl font-bold text-gray-900">Erro ao carregar pedidos</h1>
+      <p className="mb-6 text-gray-500">Não foi possível buscar seus pedidos. Tente novamente mais tarde.</p>
+      <button
+        onClick={() => { setError(false); setLoading(true); api.get('/api/orders').then(r => setOrders(r.data)).catch(() => setError(true)).finally(() => setLoading(false)); }}
+        className="rounded-xl bg-emerald-600 px-8 py-3 font-bold text-white hover:bg-emerald-700"
+      >
+        Tentar novamente
+      </button>
     </div>
   )
 
@@ -70,12 +95,11 @@ export default function Orders() {
           const { label, color } = statusConfig[order.status]
           const isOpen = expanded === order.id
           const date = new Date(order.createdAt).toLocaleDateString('pt-BR', {
-            day: '2-digit', month: 'long', year: 'numeric'
+            day: '2-digit', month: 'long', year: 'numeric',
           })
 
           return (
             <div key={order.id} className="rounded-2xl border bg-white shadow-sm">
-              {/* Header do pedido */}
               <button
                 onClick={() => setExpanded(isOpen ? null : order.id)}
                 className="flex w-full items-center justify-between p-6 text-left"
@@ -98,7 +122,6 @@ export default function Orders() {
                 {isOpen ? <ChevronUp className="h-5 w-5 text-gray-400" /> : <ChevronDown className="h-5 w-5 text-gray-400" />}
               </button>
 
-              {/* Detalhes expandidos */}
               {isOpen && (
                 <div className="border-t px-6 pb-6 pt-4 space-y-6">
                   {/* Itens */}
@@ -120,14 +143,15 @@ export default function Orders() {
                     </div>
                   </div>
 
-                  {/* Endereço + Frete + Rastreio */}
+                  {/* Endereço + Entrega */}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {/* ✅ Verifica se address existe antes de renderizar */}
                     {order.address && (
                       <div className="rounded-xl bg-gray-50 p-4">
                         <h3 className="mb-2 text-sm font-bold uppercase text-gray-500">Endereço</h3>
                         <p className="text-sm text-gray-700">
                           {order.address.address}, {order.address.number}
-                          {order.address.complement && ` - ${order.address.complement}`}
+                          {order.address.complement ? ` - ${order.address.complement}` : ''}
                         </p>
                         <p className="text-sm text-gray-700">{order.address.city} - {order.address.state}</p>
                         <p className="text-sm text-gray-700">CEP: {order.address.cep}</p>

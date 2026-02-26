@@ -9,7 +9,7 @@ export default function OrderConfirmed() {
       </div>
       <h1 className="mb-2 text-3xl font-bold text-gray-900">Pedido Confirmado!</h1>
       <p className="mb-8 max-w-md text-gray-500">
-        Obrigado por comprar no Sebo! Voce recebera um e-mail com os detalhes e o codigo de rastreio em breve.
+        Pagamento efetuado com sucesso! Obrigado por comprar no Sebo! Você receberá um e-mail com os detalhes e o código de rastreio em breve.
       </p>
       <div className="flex gap-4">
         <Link to="/pedidos" className="rounded-xl bg-emerald-600 px-8 py-3 font-bold text-white hover:bg-emerald-700">

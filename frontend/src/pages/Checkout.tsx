@@ -8,9 +8,7 @@ import { CreditCard, Truck, CheckCircle2, Loader2, Package } from 'lucide-react'
 import { toast } from 'react-hot-toast';
 import api from '../lib/api';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY, {
-  betas: ['custom_checkout_beta_5' as any],
-});
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────

@@ -17,6 +17,7 @@ export default function BookDetail() {
   const [related, setRelated] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -47,8 +48,6 @@ export default function BookDetail() {
       <Link to="/livros" className="text-emerald-600 hover:underline">Voltar para o catálogo</Link>
     </div>
   );
-
-  const [addedToCart, setAddedToCart] = useState(false);
 
   const handleAddToCart = () => {
     addItem(book);

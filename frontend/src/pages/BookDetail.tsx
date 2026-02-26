@@ -48,9 +48,12 @@ export default function BookDetail() {
     </div>
   );
 
+  const [addedToCart, setAddedToCart] = useState(false);
+
   const handleAddToCart = () => {
     addItem(book);
     toast.success(`${book.title} adicionado ao carrinho!`);
+    setAddedToCart(true);
   };
 
   return (
@@ -91,15 +94,31 @@ export default function BookDetail() {
             </div>
           </div>
 
-          <div className="mb-8 space-y-4">
-            <button
-              onClick={handleAddToCart}
-              disabled={book.stock === 0}
-              className="flex w-full items-center justify-center gap-3 rounded-xl bg-emerald-600 py-4 text-lg font-bold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          <div className="mb-8 space-y-3">
+            {!addedToCart ? (
+              <button
+                onClick={handleAddToCart}
+                disabled={book.stock === 0}
+                className="flex w-full items-center justify-center gap-3 rounded-xl bg-emerald-600 py-4 text-lg font-bold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ShoppingCart className="h-6 w-6" />
+                Adicionar ao Carrinho
+              </button>
+            ) : (
+              <Link
+                to="/carrinho"
+                className="flex w-full items-center justify-center gap-3 rounded-xl bg-emerald-700 py-4 text-lg font-bold text-white hover:bg-emerald-800"
+              >
+                <ShoppingCart className="h-6 w-6" />
+                Ver Carrinho →
+              </Link>
+            )}
+            <Link
+              to="/carrinho"
+              className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-emerald-600 py-4 text-lg font-bold text-emerald-600 hover:bg-emerald-50"
             >
-              <ShoppingCart className="h-6 w-6" />
-              Adicionar ao Carrinho
-            </button>
+              Ir para Pagamento
+            </Link>
             <p className="text-center text-sm text-gray-500">
               {book.stock > 0 ? `Apenas ${book.stock} unidades em estoque` : 'Produto indisponível'}
             </p>

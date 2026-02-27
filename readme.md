@@ -4,7 +4,7 @@
 
 🔗 **Demo:** [sebo-livraria-final.vercel.app](https://sebo-livraria-final.vercel.app)
 
----
+
 
 ## 📸 Preview
 
@@ -12,7 +12,7 @@
 ![Catálogo](./docs/screenshots/catalogo.png)
 ![Detalhe do Livro](./docs/screenshots/detalhe.png)
 ![Painel Admin](./docs/screenshots/admin.png)
----
+
 
 ## 🖥️ Tecnologias
 

@@ -8,10 +8,10 @@
 
 ## 📸 Preview
 
-![Home](./docs/screenshots/home.png)
+![Home](./docs/screenshots/inicio.png)
 ![Catálogo](./docs/screenshots/catalogo.png)
 ![Detalhe do Livro](./docs/screenshots/detalhe.png)
-![Painel Admin](./docs/screenshots/admin.png)
+
 
 
 ## 🖥️ Tecnologias

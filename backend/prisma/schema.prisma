@@ -8,13 +8,28 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(CUSTOMER)
-  createdAt DateTime @default(now())
-  orders    Order[]
+  id          String    @id @default(cuid())
+  name        String
+  email       String    @unique
+  password    String
+  role        Role      @default(CUSTOMER)
+  // ── campos de perfil ──────────────────────
+  phone       String?
+  cpf         String?
+  birthdate   DateTime?
+  // endereço
+  addressStreet     String?
+  addressNumber     String?
+  addressComplement String?
+  addressNeighborhood String?
+  addressCity       String?
+  addressState      String?
+  addressZip        String?
+  // preferências (JSON)
+  preferences Json?
+  // ──────────────────────────────────────────
+  createdAt   DateTime  @default(now())
+  orders      Order[]
 }
 
 enum Role {

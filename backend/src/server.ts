@@ -1,13 +1,14 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import authRoutes from './routes/auth';
-import bookRoutes from './routes/books';
-import orderRoutes from './routes/orders';
+import authRoutes     from './routes/auth';
+import bookRoutes     from './routes/books';
+import orderRoutes    from './routes/orders';
 import shippingRoutes from './routes/shipping';
-import stripeRoutes from './routes/stripe';
-import adminRoutes from './routes/admin';          // ✅ novo
-import { prisma } from './lib/prisma';             // ⚠️ temporário
+import stripeRoutes   from './routes/stripe';
+import adminRoutes    from './routes/admin';
+import usersRoutes    from './routes/users'; // ✅ perfil do usuário
+import { prisma }     from './lib/prisma';  // ⚠️ temporário
 
 const app = express();
 
@@ -40,7 +41,8 @@ app.use('/api/books',    bookRoutes);
 app.use('/api/orders',   orderRoutes);
 app.use('/api/shipping', shippingRoutes);
 app.use('/api/stripe',   stripeRoutes);
-app.use('/api/admin',    adminRoutes);             // ✅ novo
+app.use('/api/admin',    adminRoutes);
+app.use('/api/users',    usersRoutes); // ✅ perfil do usuário
 
 app.get('/', (_req, res) => res.json({ status: 'Sebo API rodando ✅' }));
 

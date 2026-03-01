@@ -11,9 +11,10 @@ import Orders from './pages/Orders';
 import OrderConfirmed from './pages/OrderConfirmed';
 import Checkout from './pages/Checkout';
 import Admin from './pages/Admin';
+import Profile from './pages/Profile';
 import { useAuthStore } from './store/authStore';
 
-const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: 'ADMIN' | 'CUSTOMER' }) => {
+const ProtectedRoute = ({ children, role }: { children: React.ReactNode; role?: 'ADMIN' | 'CUSTOMER' }) => {
   const { isAuthenticated, user } = useAuthStore();
   if (!isAuthenticated) return <Navigate to="/login" />;
   if (role && user?.role !== role) return <Navigate to="/" />;
@@ -31,24 +32,28 @@ export default function App() {
           <Route path="carrinho" element={<Cart />} />
           <Route path="login" element={<Login />} />
           <Route path="registro" element={<Register />} />
+
           <Route path="perfil" element={
             <ProtectedRoute>
-              <div className="container mx-auto p-12 text-center">Meu Perfil (Em breve)</div>
+              <Profile />
             </ProtectedRoute>
           } />
-          <Route path="pedido-confirmado" element={<OrderConfirmed />} />
+
           <Route path="pedidos" element={
             <ProtectedRoute>
               <Orders />
             </ProtectedRoute>
           } />
+
           <Route path="checkout" element={
             <ProtectedRoute>
               <Checkout />
             </ProtectedRoute>
           } />
 
-          {/* ✅ Admin agora dentro do Layout — Zustand lê o estado corretamente */}
+          <Route path="pedido-confirmado" element={<OrderConfirmed />} />
+
+          {/* Admin dentro do Layout — Zustand lê o estado corretamente */}
           <Route path="admin" element={
             <ProtectedRoute role="ADMIN">
               <Admin />

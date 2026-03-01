@@ -75,6 +75,7 @@ export default function Profile() {
 
   // pedidos: apenas para contadores no hero
   const [orders, setOrders] = useState<any[]>([]);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
 
   const GENEROS = ['Romance', 'Ficção', 'História', 'Filosofia', 'Autoajuda', 'Didático', 'Terror', 'Poesia'];
   const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -118,11 +119,13 @@ export default function Profile() {
     })();
   }, []);
 
-  // ── carrega pedidos quando aba for aberta ──────────────────
+  // ── carrega pedidos 1x para os contadores do hero ─────────
   useEffect(() => {
-    if (tab !== 'pedidos' || orders.length > 0) return;
-    api.get('/api/orders').then(({ data }) => setOrders(data)).catch(() => {});
-  }, [tab]);
+    if (ordersLoaded) return;
+    api.get('/api/orders')
+      .then(({ data }) => { setOrders(data); setOrdersLoaded(true); })
+      .catch(() => {});
+  }, []);
 
 
 

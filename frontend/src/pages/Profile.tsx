@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { useAuthStore, UserProfile } from '../store/authStore';
+import Orders from './Orders';
 
 type Tab = 'dados' | 'senha' | 'pedidos' | 'endereco' | 'preferencias' | 'seguranca';
 
@@ -72,9 +73,8 @@ export default function Profile() {
   const [msgPref,    setMsgPref]    = useState('');
   const [savingPref, setSavingPref] = useState(false);
 
-  // ── pedidos ────────────────────────────────────────────────
-  const [orders,  setOrders]  = useState<any[]>([]);
-  const [filtro,  setFiltro]  = useState('Todos');
+  // pedidos: apenas para contadores no hero
+  const [orders, setOrders] = useState<any[]>([]);
 
   const GENEROS = ['Romance', 'Ficção', 'História', 'Filosofia', 'Autoajuda', 'Didático', 'Terror', 'Poesia'];
   const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -124,7 +124,7 @@ export default function Profile() {
     api.get('/api/orders').then(({ data }) => setOrders(data)).catch(() => {});
   }, [tab]);
 
-  const pedidosFiltrados = filtro === 'Todos' ? orders : orders.filter(p => p.status === filtro.toUpperCase());
+
 
   // ── salvar dados pessoais ──────────────────────────────────
   const salvarDados = async () => {
@@ -350,49 +350,8 @@ export default function Profile() {
               </section>
             )}
 
-            {/* PEDIDOS */}
-            {tab === 'pedidos' && (
-              <section className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-2">
-                  <h2 className="text-lg font-semibold text-gray-800">📦 Histórico de Pedidos</h2>
-                  <Link to="/pedidos" className={BTN_OUT}>Ver página de pedidos →</Link>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {['Todos', 'ENTREGUE', 'ENVIADO', 'PAGO', 'PENDENTE', 'CANCELADO'].map(f => (
-                    <button key={f} onClick={() => setFiltro(f)}
-                      className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                        filtro === f ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}>
-                      {f === 'Todos' ? 'Todos' : <StatusBadge s={f} />}
-                    </button>
-                  ))}
-                </div>
-                {pedidosFiltrados.length === 0
-                  ? <p className="py-8 text-center text-sm text-gray-400">Nenhum pedido encontrado.</p>
-                  : pedidosFiltrados.map((p: any) => (
-                    <div key={p.id} className="rounded-xl border border-gray-100 p-4 hover:border-emerald-200 hover:shadow-sm transition-all">
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div>
-                          <p className="font-semibold text-gray-700 text-sm font-mono">{p.id.slice(0, 12)}…</p>
-                          <p className="text-xs text-gray-400">{new Date(p.createdAt).toLocaleDateString('pt-BR')}</p>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <StatusBadge s={p.status} />
-                          <p className="text-sm font-bold text-gray-700">
-                            {p.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                          </p>
-                        </div>
-                      </div>
-                      {p.items?.length > 0 && (
-                        <p className="mt-2 text-xs text-gray-500">
-                          📚 {p.items.map((i: any) => i.book?.title ?? '').join(' · ')}
-                        </p>
-                      )}
-                    </div>
-                  ))
-                }
-              </section>
-            )}
+            {/* PEDIDOS — reutiliza o componente Orders completo */}
+            {tab === 'pedidos' && <Orders />}
 
             {/* ENDEREÇO */}
             {tab === 'endereco' && (

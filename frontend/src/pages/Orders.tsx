@@ -8,7 +8,7 @@ interface OrderItem {
   id: string
   quantity: number
   price: number
-  book: { id: string; title: string; author: string; coverImage: string }
+  book: { id: string; title: string; author: string; coverImage: string } | null
 }
 
 interface Address {
@@ -42,17 +42,21 @@ const statusConfig = {
 }
 
 export default function Orders() {
-  const [orders, setOrders] = useState<Order[]>([])
+  const [orders, setOrders]   = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const [error, setError]     = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
 
-  useEffect(() => {
+  const fetchOrders = () => {
+    setError(false)
+    setLoading(true)
     api.get('/api/orders')
       .then(r => setOrders(r.data))
-      .catch(() => setError(true))          // ✅ captura erro e exibe feedback
+      .catch(() => setError(true))
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { fetchOrders() }, [])
 
   if (loading) return (
     <div className="flex h-64 items-center justify-center">
@@ -60,16 +64,13 @@ export default function Orders() {
     </div>
   )
 
-  // ✅ Tela de erro de rede/API
   if (error) return (
     <div className="container mx-auto flex h-[60vh] flex-col items-center justify-center px-4 text-center">
       <AlertCircle className="mb-4 h-16 w-16 text-red-400" />
       <h1 className="mb-2 text-2xl font-bold text-gray-900">Erro ao carregar pedidos</h1>
       <p className="mb-6 text-gray-500">Não foi possível buscar seus pedidos. Tente novamente mais tarde.</p>
-      <button
-        onClick={() => { setError(false); setLoading(true); api.get('/api/orders').then(r => setOrders(r.data)).catch(() => setError(true)).finally(() => setLoading(false)); }}
-        className="rounded-xl bg-emerald-600 px-8 py-3 font-bold text-white hover:bg-emerald-700"
-      >
+      <button onClick={fetchOrders}
+        className="rounded-xl bg-emerald-600 px-8 py-3 font-bold text-white hover:bg-emerald-700">
         Tentar novamente
       </button>
     </div>
@@ -119,25 +120,37 @@ export default function Orders() {
                   </div>
                   <span className={`rounded-full px-3 py-1 text-xs font-bold ${color}`}>{label}</span>
                 </div>
-                {isOpen ? <ChevronUp className="h-5 w-5 text-gray-400" /> : <ChevronDown className="h-5 w-5 text-gray-400" />}
+                {isOpen
+                  ? <ChevronUp className="h-5 w-5 text-gray-400" />
+                  : <ChevronDown className="h-5 w-5 text-gray-400" />}
               </button>
 
               {isOpen && (
                 <div className="border-t px-6 pb-6 pt-4 space-y-6">
+
                   {/* Itens */}
                   <div>
                     <h3 className="mb-3 text-sm font-bold uppercase text-gray-500">Itens</h3>
                     <div className="space-y-3">
                       {order.items.map(item => (
                         <div key={item.id} className="flex gap-4">
-                          <img src={item.book.coverImage} alt={item.book.title}
-                            className="h-16 w-12 rounded object-cover" />
-                          <div className="flex-1">
-                            <p className="font-bold text-gray-900 line-clamp-1">{item.book.title}</p>
-                            <p className="text-sm text-gray-500">{item.book.author}</p>
-                            <p className="text-sm text-gray-500">{item.quantity}x {formatPrice(item.price)}</p>
-                          </div>
-                          <p className="font-bold text-gray-900">{formatPrice(item.price * item.quantity)}</p>
+                          {item.book ? (
+                            <>
+                              <img src={item.book.coverImage} alt={item.book.title}
+                                className="h-16 w-12 rounded object-cover" />
+                              <div className="flex-1">
+                                <p className="font-bold text-gray-900 line-clamp-1">{item.book.title}</p>
+                                <p className="text-sm text-gray-500">{item.book.author}</p>
+                                <p className="text-sm text-gray-500">{item.quantity}x {formatPrice(item.price)}</p>
+                              </div>
+                              <p className="font-bold text-gray-900">{formatPrice(item.price * item.quantity)}</p>
+                            </>
+                          ) : (
+                            // livro deletado do catálogo
+                            <div className="flex-1 rounded-lg bg-gray-50 px-4 py-3 text-sm text-gray-400 italic">
+                              Livro removido do catálogo &nbsp;·&nbsp; {item.quantity}x {formatPrice(item.price)}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -145,7 +158,6 @@ export default function Orders() {
 
                   {/* Endereço + Entrega */}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    {/* ✅ Verifica se address existe antes de renderizar */}
                     {order.address && (
                       <div className="rounded-xl bg-gray-50 p-4">
                         <h3 className="mb-2 text-sm font-bold uppercase text-gray-500">Endereço</h3>
@@ -183,6 +195,7 @@ export default function Orders() {
                       <span>Total</span><span>{formatPrice(order.total)}</span>
                     </div>
                   </div>
+
                 </div>
               )}
             </div>
